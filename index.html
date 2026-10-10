@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetroPulse | Metro Passenger Complaint Intelligence</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="mp-navbar">
+    <div class="mp-nav-left">
+      <button id="menu-toggle" class="mp-hamburger" aria-label="Toggle Navigation Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="mp-brand">
+        <div class="mp-brand-logo">🚇</div>
+        <div class="mp-brand-text">
+          <span class="mp-brand-title">MetroPulse</span>
+          <span class="mp-brand-tagline">Every Voice Matters. Every Journey Matters.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mp-nav-right">
+      <div class="badge-pill badge-offline">
+        <span class="indicator-dot green"></span>
+        <span>100% OFFLINE READY</span>
+      </div>
+      <div class="badge-pill badge-storage">
+        <span>💾 LOCALSTORAGE PERSISTENT</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP LAYOUT: SIDEBAR + MAIN CONTENT -->
+  <div class="mp-layout">
+    <!-- SIDEBAR -->
+    <aside id="mp-sidebar" class="mp-sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">NAVIGATION MENU</span>
+        <button id="sidebar-close" class="sidebar-close-btn" aria-label="Close Sidebar">&times;</button>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="overview">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Overview</span>
+        </button>
+        <button class="nav-item" data-view="submit">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">Submit Complaint</span>
+        </button>
+        <button class="nav-item" data-view="records">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Complaint Records</span>
+        </button>
+        <button class="nav-item" data-view="about">
+          <span class="nav-icon">ℹ️</span>
+          <span class="nav-label">About</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="telemetry-box">
+          <div class="telemetry-heading">OPERATIONAL TELEMETRY</div>
+          <div class="telemetry-row"><span>Triage AI:</span> <strong id="triage-status">Rule Engine v2.0</strong></div>
+          <div class="telemetry-row"><span>Deployment:</span> <strong>Vercel Static</strong></div>
+          <div class="telemetry-row"><span>Storage:</span> <strong>Client-Side Isolated</strong></div>
+        </div>
+
+        <div class="demo-controls">
+          <div class="demo-heading">DATA CONTROLS</div>
+          <div class="demo-btn-group">
+            <button id="btn-clear-samples" class="btn-secondary btn-sm" title="Remove sample benchmark data while preserving user submissions">Clear Samples</button>
+            <button id="btn-restore-samples" class="btn-secondary btn-sm" title="Restore default sample records">Reset Demo</button>
+          </div>
+        </div>
+        <div class="sidebar-copyright">PS-07 Hackathon Edition</div>
+      </div>
+    </aside>
+
+    <!-- SIDEBAR OVERLAY (FOR MOBILE SCREENS) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- MAIN VIEWS CONTAINER -->
+    <main class="mp-main">
+
+      <!-- ========================================================
+           VIEW 1: OVERVIEW DASHBOARD
+      ========================================================= -->
+      <section id="view-overview" class="view-section active">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Operational Overview & Intelligence</h1>
+            <p class="section-desc">Real-time transit passenger sentiment and safety monitoring across station network.</p>
+          </div>
+        </div>
+
+        <!-- UNRESOLVED CRITICAL/HIGH ALERT PANEL (RENDERED DYNAMICALLY) -->
+        <div id="urgent-alerts-container"></div>
+
+        <!-- KPI CARDS -->
+        <div class="kpi-grid">
+          <div class="kpi-card card-cyan">
+            <div class="kpi-label">TOTAL COMPLAINTS</div>
+            <div class="kpi-value" id="kpi-total">0</div>
+            <div class="kpi-sub" id="kpi-sub-total">0 Live &bull; 0 Samples</div>
+          </div>
+          <div class="kpi-card card-amber">
+            <div class="kpi-label">ACTIVE / OPEN</div>
+            <div class="kpi-value" id="kpi-active">0</div>
+            <div class="kpi-sub" id="kpi-sub-active">0 Open &bull; 0 In Progress</div>
+          </div>
+          <div class="kpi-card card-red">
+            <div class="kpi-label">CRITICAL & HIGH PRIORITY</div>
+            <div class="kpi-value" id="kpi-high">0</div>
+            <div class="kpi-sub">Safety & mobility impediments</div>
+          </div>
+          <div class="kpi-card card-green">
+            <div class="kpi-label">RESOLVED RATIO</div>
+            <div class="kpi-value" id="kpi-resolved">0%</div>
+            <div class="kpi-sub" id="kpi-sub-resolved">0 incidents closed</div>
+          </div>
+        </div>
+
+        <!-- CHARTS & DISTRIBUTION SECTION -->
+        <div class="grid-two-col">
+          <!-- CATEGORY DISTRIBUTION -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <span>📌 Incident Breakdown by Category</span>
+            </div>
+            <div class="panel-body">
+              <div id="category-bars" class="bar-chart-container">
+                <!-- Dynamically rendered bars -->
+              </div>
+            </div>
+          </div>
+
+          <!-- PRIORITY DISTRIBUTION -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <span>🚨 Triage Priority Assessment</span>
+            </div>
+            <div class="panel-body">
+              <div id="priority-bars" class="bar-chart-container">
+                <!-- Dynamically rendered bars -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPERATIONAL INSIGHTS -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span>🔍 Station Operational Insights</span>
+          </div>
+          <div class="panel-body insights-grid">
+            <div class="insight-box cyan">
+              <div class="insight-label">HIGHEST INCIDENT STATION</div>
+              <div class="insight-value" id="insight-station">Loading...</div>
+              <div class="insight-note" id="insight-station-count">-</div>
+            </div>
+            <div class="insight-box amber">
+              <div class="insight-label">PREDOMINANT COMPLAINT DOMAIN</div>
+              <div class="insight-value" id="insight-cat">Loading...</div>
+              <div class="insight-note" id="insight-cat-count">-</div>
+            </div>
+            <div class="insight-box red">
+              <div class="insight-label">CRITICAL ESCALATION RATIO</div>
+              <div class="insight-value" id="insight-ratio">0%</div>
+              <div class="insight-note" id="insight-ratio-count">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY FEED -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span>⏱️ Recent Complaints Activity Stream</span>
+          </div>
+          <div class="panel-body">
+            <div id="recent-complaints-list" class="activity-stream">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 2: SUBMIT COMPLAINT
+      ========================================================= -->
+      <section id="view-submit" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Register Passenger Incident</h1>
+            <p class="section-desc">Submit passenger feedback with automatic client-side safety evaluation and local persistence.</p>
+          </div>
+        </div>
+
+        <!-- SUBMISSION FORM CARD -->
+        <div class="panel-card form-panel">
+          <form id="complaint-form" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="input-station">Metro Station <span class="req">*</span></label>
+                <select id="input-station" required>
+                  <option value="Central Junction">Central Junction</option>
+                  <option value="Terminal 1 Hub">Terminal 1 Hub</option>
+                  <option value="Tech City Interchange">Tech City Interchange</option>
+                  <option value="MG Promenade">MG Promenade</option>
+                  <option value="Heritage Square">Heritage Square</option>
+                  <option value="Civic Center">Civic Center</option>
+                  <option value="Airport North">Airport North</option>
+                  <option value="University Boulevard">University Boulevard</option>
+                  <option value="Financial District">Financial District</option>
+                  <option value="Botanical Gardens">Botanical Gardens</option>
+                  <option value="South Boulevard">South Boulevard</option>
+                  <option value="Westside Gateway">Westside Gateway</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="input-category">Observed Category <span class="req">*</span></label>
+                <select id="input-category" required>
+                  <option value="Cleanliness">Cleanliness</option>
+                  <option value="Ticketing">Ticketing</option>
+                  <option value="Delay">Delay</option>
+                  <option value="Overcrowding">Overcrowding</option>
+                  <option value="Accessibility">Accessibility</option>
+                  <option value="Safety">Safety</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="input-platform">Platform / Direction / Concourse (Optional)</label>
+                <input type="text" id="input-platform" placeholder="e.g. Platform 2 (Northbound), Concourse Gate 3">
+              </div>
+
+              <div class="form-group">
+                <label for="input-contact">Passenger Reference / Ticket ID (Optional)</label>
+                <input type="text" id="input-contact" placeholder="e.g. PASS-8923 or leave blank for Anonymous">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="input-description">Detailed Incident Description <span class="req">*</span></label>
+              <textarea id="input-description" rows="4" placeholder="Describe the incident clearly (e.g., 'Elevator near Gate 1 has broken down, a passenger in a wheelchair cannot exit...' or 'Water leak on Platform 2 creates slip risk...')" required></textarea>
+            </div>
+
+            <div class="form-notice">
+              <span class="notice-icon">🛡️</span>
+              <div class="notice-text">
+                <strong>Safety-First Triage Engine:</strong> Your description will be automatically analyzed for hazards (fire, smoke, injury, unconsciousness, track obstructions). Critical safety concerns are elevated to High/Critical priority regardless of category.
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="btn-submit-complaint" class="btn-primary">
+                ⚡ Submit & Triage Complaint (Offline)
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- POST-SUBMISSION TRIAGE RESULT CONTAINER -->
+        <div id="submission-result-container"></div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 3: COMPLAINT RECORDS (MANAGEMENT & EXPORT)
+      ========================================================= -->
+      <section id="view-records" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Complaint Records & Shift Management</h1>
+            <p class="section-desc">Filter, search, update operational dispatch states, and export CSV reports.</p>
+          </div>
+          <div class="header-actions">
+            <button id="btn-export-csv" class="btn-outline">
+              📥 Export Records (CSV)
+            </button>
+          </div>
+        </div>
+
+        <!-- SEARCH & FILTERS PANEL -->
+        <div class="panel-card filter-panel">
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label for="filter-search">Keyword Search</label>
+              <input type="text" id="filter-search" placeholder="Search ID, text, station, keyword...">
+            </div>
+            <div class="filter-group">
+              <label for="filter-station">Station Filter</label>
+              <select id="filter-station">
+                <option value="ALL">All Stations</option>
+                <option value="Central Junction">Central Junction</option>
+                <option value="Terminal 1 Hub">Terminal 1 Hub</option>
+                <option value="Tech City Interchange">Tech City Interchange</option>
+                <option value="MG Promenade">MG Promenade</option>
+                <option value="Heritage Square">Heritage Square</option>
+                <option value="Civic Center">Civic Center</option>
+                <option value="Airport North">Airport North</option>
+                <option value="University Boulevard">University Boulevard</option>
+                <option value="Financial District">Financial District</option>
+                <option value="Botanical Gardens">Botanical Gardens</option>
+                <option value="South Boulevard">South Boulevard</option>
+                <option value="Westside Gateway">Westside Gateway</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-status">Status Filter</label>
+              <select id="filter-status">
+                <option value="ALL">All Statuses</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-priority">Priority Filter</label>
+              <select id="filter-priority">
+                <option value="ALL">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-category">Category Filter</label>
+              <select id="filter-category">
+                <option value="ALL">All Categories</option>
+                <option value="Cleanliness">Cleanliness</option>
+                <option value="Ticketing">Ticketing</option>
+                <option value="Delay">Delay</option>
+                <option value="Overcrowding">Overcrowding</option>
+                <option value="Accessibility">Accessibility</option>
+                <option value="Safety">Safety</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK STATUS UPDATE TOOL -->
+        <div class="panel-card status-updater-panel">
+          <div class="panel-header">
+            <span>⚡ Rapid Status Dispatch</span>
+          </div>
+          <div class="updater-form">
+            <div class="updater-select">
+              <label for="select-update-record">Select Incident:</label>
+              <select id="select-update-record"></select>
+            </div>
+            <div class="updater-status">
+              <label for="select-new-status">New Operational State:</label>
+              <select id="select-new-status">
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <div class="updater-action">
+              <button id="btn-apply-status" class="btn-primary">Apply Update</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECORDS TABLE CONTAINER -->
+        <div class="panel-card">
+          <div class="table-meta">
+            <span id="records-counter">Showing 0 of 0 records</span>
+          </div>
+          <div class="table-responsive">
+            <table class="mp-table" id="complaints-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Timestamp</th>
+                  <th>Station</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Summary</th>
+                  <th>Reason / Triage</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody id="complaints-tbody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 4: ABOUT & ARCHITECTURE
+      ========================================================= -->
+      <section id="view-about" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">About MetroPulse</h1>
+            <p class="section-desc">Architecture, safety ethics, and offline design rationale.</p>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <span>🚇 Problem Statement PS-07: "Every Complaint Heard"</span>
+          </div>
+          <div class="panel-body text-block">
+            <p>
+              In underground metro networks, deep tunnels, and heavily crowded platforms, passenger mobile connectivity is frequently interrupted or completely absent. Traditional cloud-dependent complaint reporting systems fail silently, resulting in lost safety hazards and delayed assistance.
+            </p>
+            <p>
+              <strong>MetroPulse</strong> is an offline-first Passenger Complaint Intelligence and Management System engineered to provide zero-latency incident intake, deterministic heuristic safety triage, and resilient local data persistence—requiring zero external internet connectivity or background neural network model execution.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid-two-col">
+          <div class="panel-card">
+            <div class="panel-header">
+              <span>🏗️ Architecture & Offline Implementation</span>
+            </div>
+            <div class="panel-body text-block">
+              <ul>
+                <li><strong>100% Zero-Cloud Dependency:</strong> Runs completely within the browser sandbox using vanilla HTML5, CSS3, and modern ECMAScript.</li>
+                <li><strong>Deterministic Safety-First Triage:</strong> Evaluates dual-factor incident features. Serious hazards (unconscious passenger, fire, person on tracks) bypass ordinary categories.</li>
+                <li><strong>Negation-Aware Regular Expressions:</strong> Distinguishes explicit absences (e.g. <em>"no fire or smoke"</em>) from active emergencies to avoid false alarms.</li>
+                <li><strong>Isolated Client-Side Persistence:</strong> Uses <code>localStorage</code> to preserve submissions across browser restarts without server infrastructure.</li>
+                <li><strong>Zero-Battery Overhead:</strong> Requires no CPU-heavy background LLM inference, ensuring operational readiness during power emergencies.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <span>⚖️ Responsible Transit AI Ethics & Boundaries</span>
+            </div>
+            <div class="panel-body text-block">
+              <ul>
+                <li><strong>Automated Suggestions Only:</strong> Triage classifications and recommended responses are decision-support aids; station personnel retain dispatch authority.</li>
+                <li><strong>Honest Transmission Boundary:</strong> The app explicitly clarifies that local storage saves complaints to this machine/browser and does <em>not</em> automatically dial 911 or dispatch train operators.</li>
+                <li><strong>Privacy by Default:</strong> Zero tracking cookies, third-party analytics, or mandatory personal identifiers. Commuters may submit anonymously.</li>
+                <li><strong>Data Integrity:</strong> Benchmark sample records are visibly distinguished from live passenger submissions and can be cleared with one click.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="disclaimer-banner">
+          🛡️ <strong>Safety Disclaimer:</strong> MetroPulse is an operational management and triage decision-support prototype. It does not replace direct emergency equipment (such as emergency stop buttons, passenger alarm handles, or emergency station phones).
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SCRIPT INCLUSION -->
+  <script src="script.js"></script>
+</body>
+</html>
